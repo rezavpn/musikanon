@@ -11,7 +11,7 @@ from youtubesearchpython.__future__ import VideosSearch
 from AnonXMusic.utils.database import is_on_off
 from AnonXMusic.utils.formatters import time_to_seconds
 
-cook = "pepek.txt"
+cook = "cook.txt"
 
 async def shell_cmd(cmd):
     proc = await asyncio.create_subprocess_shell(
