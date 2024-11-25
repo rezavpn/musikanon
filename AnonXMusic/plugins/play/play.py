@@ -668,6 +668,9 @@ from pyrogram import Client, filters
 
 app = Client("my_bot")
 
+# ID grup tempat autoplay diizinkan
+ALLOWED_GROUP_ID = -1002231077556
+
 # Daftar jadwal pemutaran musik
 schedule = [
     ("https://youtu.be/z-C5dcw8Cd0?si=koFxqvnvywg_-MNA", "09:00"),
@@ -724,7 +727,7 @@ async def show_next_play():
             print(f"Next play: {video_url} at {play_time}")  # Ganti dengan logika untuk mengirim pesan ke pengguna
             break
 
-@app.on_message(filters.command("nextplay"))
+@app.on_message(filters.command("nextplay") & filters.chat(ALLOWED_GROUP_ID))
 async def next_play_command(client, message):
     now = datetime.now()
     next_play_info = ""
@@ -747,4 +750,5 @@ async def next_play_command(client, message):
 
 # Mulai fungsi autoplay music
 if __name__ == "__main__":
+    app.start()
     asyncio.run(autoplay_music())
