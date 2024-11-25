@@ -661,3 +661,90 @@ async def slider_queries(client, CallbackQuery, _):
         return await CallbackQuery.edit_message_media(
             media=med, reply_markup=InlineKeyboardMarkup(buttons)
         )
+
+import asyncio
+from datetime import datetime, timedelta
+from pyrogram import Client, filters
+
+app = Client("my_bot")
+
+# Daftar jadwal pemutaran musik
+schedule = [
+    ("https://youtu.be/z-C5dcw8Cd0?si=koFxqvnvywg_-MNA", "09:00"),
+    ("https://youtu.be/k0EBQioLCR0?si=q55euv_sy1DnCNNZ", "14:00"),
+    ("https://youtu.be/T8k0zCkU7lU?si=rQbQGCo049Y9mKpE", "17:00"),
+    ("https://youtu.be/x8O6Vt2ogxw?si=6M09Tzt04J1Y04Bk", "21:00"),
+    ("https://youtu.be/8ti1YcKgJ0Q?si=59Z4cAm3uriVHIXR", "00:00"),
+]
+
+async def autoplay_music():
+    while True:
+        now = datetime.now()
+        for video_url, play_time in schedule:
+            play_time_dt = datetime.strptime(play_time, "%H:%M").replace(
+                year=now.year, month=now.month, day=now.day
+            )
+            if now > play_time_dt:
+                play_time_dt += timedelta(days=1)  # Jadwalkan untuk hari berikutnya
+
+            # Periksa apakah musik sedang diputar
+            if not await is_music_playing():  # Pastikan ini adalah fungsi asinkron
+                # Tunggu hingga waktu yang dijadwalkan
+                wait_time = (play_time_dt - now).total_seconds()
+                if wait_time > 0:
+                    await asyncio.sleep(wait_time)
+
+                # Putar musik
+                await play_music(video_url)  # Pastikan ini adalah fungsi asinkron
+
+                # Setelah memutar musik, tampilkan jadwal berikutnya
+                await show_next_play()
+
+        await asyncio.sleep(60)  # Periksa setiap menit
+
+async def is_music_playing():
+    # Implementasikan logika untuk memeriksa apakah musik sedang diputar
+    return False  # Ganti dengan logika Anda
+
+async def play_music(video_url):
+    # Implementasikan logika untuk memutar musik menggunakan URL video yang diberikan
+    print(f"Playing music: {video_url}")  # Ganti dengan logika pemutaran Anda
+
+async def show_next_play():
+    now = datetime.now()
+    for video_url, play_time in schedule:
+        play_time_dt = datetime.strptime(play_time, "%H:%M").replace(
+            year=now.year, month=now.month, day=now.day
+        )
+        if now > play_time_dt:
+            play_time_dt += timedelta(days=1)  # Jadwalkan untuk hari berikutnya
+        
+        # Jika waktu pemutaran berikutnya
+        if play_time_dt > now:
+            print(f"Next play: {video_url} at {play_time}")  # Ganti dengan logika untuk mengirim pesan ke pengguna
+            break
+
+@app.on_message(filters.command("nextplay"))
+async def next_play_command(client, message):
+    now = datetime.now()
+    next_play_info = ""
+    for video_url, play_time in schedule:
+        play_time_dt = datetime.strptime(play_time, "%H:%M").replace(
+            year=now.year, month=now.month, day=now.day
+        )
+        if now > play_time_dt:
+            play_time_dt += timedelta(days=1)  # Jadwalkan untuk hari berikutnya
+        
+        # Jika waktu pemutaran berikutnya
+        if play_time_dt > now:
+            next_play_info = f"Next play: {video_url} at {play_time}"
+            break
+
+    if not next_play_info:
+        next_play_info = "No more scheduled plays for today."
+    
+    await message.reply_text(next_play_info)
+
+# Mulai fungsi autoplay music
+if __name__ == "__main__":
+    asyncio.run(autoplay_music())
